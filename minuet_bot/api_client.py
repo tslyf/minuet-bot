@@ -27,6 +27,7 @@ class DrivingSchoolAPI:
             profile = self.get_profile()
             self.student_id = profile["studentDetails"]["id"]
             logging.info(f"Профиль успешно загружен. Student ID: {self.student_id}")
+
         except Exception as e:
             logging.error(f"Не удалось получить профиль студента: {e}")
             raise AuthorizationFailed(
@@ -47,16 +48,20 @@ class DrivingSchoolAPI:
                 raise requests.RequestException(
                     f"Не удалось получить данные от сервера: {response.text}"
                 )
+
             if "meta" in data and "error" in data["meta"]:
                 raise AuthorizationFailed(
                     f"Ошибка при обновлении токена: {data['meta']['error']}"
                 )
+
             response.raise_for_status()
+
             token = data["result"]["token"]
             self.session.headers.update({"Authorization": f"Bearer {token}"})
             logging.info("Токен успешно обновлен.")
+
         except requests.RequestException as e:
-            logging.error(f"Критическая ошибка при обновлении токена: {e}")
+            logging.exception("Критическая ошибка при обновлении токена")
             raise AuthorizationFailed from e
 
     def _call_api(
@@ -81,8 +86,9 @@ class DrivingSchoolAPI:
 
             resp.raise_for_status()
             return resp.json()
-        except requests.RequestException as e:
-            logging.error(f"Ошибка при вызове API {method}: {e}")
+
+        except requests.RequestException:
+            logging.exception(f"Ошибка при вызове API {method}")
             raise
 
     def get_profile(self) -> dict:
@@ -134,6 +140,7 @@ class DrivingSchoolAPI:
                     f"Не удалось записаться на занятие ID: {driving_id}. Ответ API: {response}"
                 )
             return is_success
-        except Exception as e:
-            logging.error(f"Ошибка при записи на занятие ID {driving_id}: {e}")
+
+        except Exception:
+            logging.exception(f"Ошибка при записи на занятие ID {driving_id}")
             return False
