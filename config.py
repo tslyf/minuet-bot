@@ -11,7 +11,7 @@ class TargetConfig(TypedDict):
     car_id: int
 
 
-class Settings(BaseSettings):
+class Settings(BaseSettings, env_parse_none_str="None"):
     EMAIL: EmailStr
     PASSWORD: str = Field(min_length=1)
     TELEGRAM_BOT_TOKEN: str
